@@ -27,9 +27,33 @@ void blink_code(uint32_t err)
     timer_delay_ms(4500);
 }
 
+/*
+ * Outputs the game board which looks like this:
+ *    1 | 2 | 3
+ * -+---+---+---
+ * A| X | O | X
+ * -+---+---+---
+ * B| O | X | O
+ * -+---+---+---
+ * C| X | O | X
+ */
+void display_game_board()
+{
+    put_string("   1 | 2 | 3\r\n");
+    put_string("-+---+---+---\r\n");
+    put_string("A| X | O | X\r\n");
+    put_string("-+---+---+---\r\n");
+    put_string("B| O | X | O\r\n");
+    put_string("-+---+---+---\r\n");
+    put_string("C| X | O | X\r\n");
+}
+
 int main()
 {
-    // Implement Lab 5 as described in the lab manual
+    // Initialize uart
+    init_uart();
+
+    display_game_board();
     
     return 0;
 }
