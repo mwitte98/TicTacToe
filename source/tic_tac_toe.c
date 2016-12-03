@@ -42,6 +42,11 @@ bool record_player_move(char x, int y, const char * player_symbol)
         row = 2;
     }
 
+    if (row < 0 || row > 2 || col < 0 || col > 2)
+    {
+        return false; // out of bounds
+    }
+
     if (board[row][col] != " ")
     {
         return false;
@@ -57,7 +62,6 @@ const char * get_winner()
 {
     int i, j;
     const char * current;
-    const char * winner = "\0";
 
     // iterate over rows
     for (i = 0; i < 3; i++)
