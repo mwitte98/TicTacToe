@@ -132,6 +132,23 @@ char get_winner()
     return '$';
 }
 
+// Returns true if every space of the game board is full
+// Returns false otherwise
+bool is_game_board_full()
+{
+    int i, j;
+
+    for (i = 0; i < 3; i++)
+    {
+        for (j = 0; j < 3; j++)
+        {
+            if (board[i][j] == ' ') return false;
+        }
+    }
+
+    return true;
+}
+
 // Output the game board to the console
 // Warning: this is ugly
 void display_game_board()
@@ -219,10 +236,13 @@ char play_game(char first_player)
             put_char(winner);
             put_string(" is the winner!\r\n");
             return winner;
+        } else if (is_game_board_full()) {
+            put_string("Game has ended in a tie!\r\n");
+            return '$';
         }
+
         active_player = active_player == 'X' ? 'O' : 'X';
     }
 
-    // TODO: check if game ends in a tie
     // TODO: LED lights
 }
