@@ -53,7 +53,6 @@ bool record_player_move(char x, int y, const char * player_symbol)
 }
 
 // Get the winner of the game
-// Work in progress...not fully functional yet..
 const char * get_winner()
 {
     int i, j;
@@ -66,15 +65,15 @@ const char * get_winner()
         current = board[i][0];
         for (j = 0; j < 3; j++)
         {
-            if (board[i][j] != current || board[i][j] == " ")
+            if (board[i][j] != current)
             {
                 current = "\0";
             }
         }
 
-        if (current != "\0")
+        if (current != "\0" && current != " ")
         {
-            winner = current;
+            return current;
         }
     }
 
@@ -84,15 +83,15 @@ const char * get_winner()
         current = board[0][i];
         for (j = 0; j < 3; j++)
         {
-            if (board[j][i] != current || board[i][j] == " ")
+            if (board[j][i] != current)
             {
                 current = "\0";
             }
         }
 
-        if (current != "\0")
+        if (current != "\0" && current != " ")
         {
-            winner = current;
+            return current;
         }
     }
 
@@ -100,18 +99,18 @@ const char * get_winner()
     current = board[0][0];
     for (i = 0; i < 3; i++)
     {
-        if (board[i][i] != current || board[i][j] == " ")
+        if (board[i][i] != current)
         {
             current = "\0";
         }
     }
 
-    if (current != "\0")
+    if (current != "\0" && current != " ")
     {
-        winner = current;
+        return current;
     }
 
-    current = board[0][4];
+    current = board[0][2];
     for (i = 0; i < 3; i++)
     {
         if (board[i][3 - i] != current || board[i][j] == " ")
@@ -120,14 +119,9 @@ const char * get_winner()
         }
     }
 
-    if (current != "\0")
+    if (current != "\0" && current != " ")
     {
-        winner = current;
-    }
-
-    if (winner != " ")
-    {
-        return winner;
+        return current;
     }
 
     return "No winner yet";
