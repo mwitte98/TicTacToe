@@ -1,4 +1,5 @@
 #include "system_timer.h"
+#include "gpio.h"
 
 void timer_delay_us(uint32_t delayUs)
 {
@@ -27,4 +28,29 @@ void timer_delay_ms(uint32_t delayMs)
 void timer_delay_sec(uint32_t delaySec)
 {
     timer_delay_us(delaySec * 1000000);
+}
+
+void blink_once()
+{
+    // Turn on GPIO 24
+    gpio[GPSET0] |= 1 << 24;
+
+    timer_delay_ms(500);
+
+    // Turn off GPIO 24
+    gpio[GPCLR0] |= 1 << 24;
+
+    timer_delay_ms(500);
+}
+
+void blink_code(uint32_t err)
+{
+    for(int i = 0; i < err; ++i)
+    {
+        blink_once();
+    }
+
+    // Only delay 4 seconds, since we delay for 1 additional
+    // second in blink_once().
+    timer_delay_ms(4500);
 }

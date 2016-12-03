@@ -1,16 +1,11 @@
-#include <stdio.h>
-
-typedef enum { false, true } bool; // allow for use of booleans
+#include "tic_tac_toe.h"
+#include "uart.h"
 
 // Initialize 2D game board with single space strings
-const char * board[3][3] = {
-    {" ", " ", " "},
-    {" ", " ", " "},
-    {" ", " ", " "}
-};
+char board[3][3];
 
 // Return the value of a single game board space as a string
-const char * get_board_value(char x, int y)
+char get_board_value(char x, int y)
 {
     int row = 0; // need to convert A/B/C to 0/1/2
     int col = y - 1; // need to convert 1/2/3 to 0/1/2
@@ -29,28 +24,46 @@ const char * get_board_value(char x, int y)
 // Record a player move
 // Return false if the move is invalid
 // Return true if the move is valid and successfully recorded
-bool record_player_move(char x, int y, const char * player_symbol)
+// ***After casting input column from char to int, the int is
+// always > 2 so y has to be explicitly checked for values
+bool record_player_move(char x, char y, char player_symbol)
 {
-    int row = 0; // need to convert A/B/C to 0/1/2
-    int col = y - 1; // need to convert 1/2/3 to 0/1/2
+    int row; // need to convert A/B/C to 0/1/2
+    int col; // need to convert 1/2/3 to 0/1/2
 
-    if (x == 'B')
+    if (x == 'A' || x == 'a')
+    {
+        row = 0;
+    } else if (x == 'B' || x == 'b')
     {
         row = 1;
-    } else if (x == 'C')
+    } else if (x == 'C' || x == 'c')
     {
         row = 2;
+    } else
+    {
+        row = -1;
     }
 
-    if (row < 0 || row > 2 || col < 0 || col > 2)
+    if (y == '1')
     {
-        return false; // out of bounds
+        col = 0;
+    } else if (y == '2')
+    {
+        col = 1;
+    } else if (y == '3')
+    {
+        col = 2;
+    } else
+    {
+        col = -1;
     }
 
-    if (board[row][col] != " ")
-    {
-        return false;
-    }
+    // out of bounds
+    if (row < 0 || col < 0 ) return false;
+
+    // grid square already filled in
+    if (board[row][col] != ' ') return false;
 
     board[row][col] = player_symbol;
 
@@ -58,10 +71,10 @@ bool record_player_move(char x, int y, const char * player_symbol)
 }
 
 // Get the winner of the game
-const char * get_winner()
+char get_winner()
 {
     int i, j;
-    const char * current;
+    char current;
 
     // iterate over rows
     for (i = 0; i < 3; i++)
@@ -71,14 +84,11 @@ const char * get_winner()
         {
             if (board[i][j] != current)
             {
-                current = "\0";
+                current = '$';
             }
         }
 
-        if (current != "\0" && current != " ")
-        {
-            return current;
-        }
+        if (current != '$' && current != ' ') return current;
     }
 
     // iterate over columns
@@ -89,14 +99,11 @@ const char * get_winner()
         {
             if (board[j][i] != current)
             {
-                current = "\0";
+                current = '$';
             }
         }
 
-        if (current != "\0" && current != " ")
-        {
-            return current;
-        }
+        if (current != '$' && current != ' ') return current;
     }
 
     // iterate over diagonals
@@ -105,91 +112,117 @@ const char * get_winner()
     {
         if (board[i][i] != current)
         {
-            current = "\0";
+            current = '$';
         }
     }
 
-    if (current != "\0" && current != " ")
-    {
-        return current;
-    }
+    if (current != '$' && current != ' ') return current;
 
     current = board[0][2];
     for (i = 0; i < 3; i++)
     {
-        if (board[i][3 - i] != current || board[i][j] == " ")
+        if (board[i][2 - i] != current || board[i][2 - i] == ' ')
         {
-            current = "\0";
+            current = '$';
         }
     }
 
-    if (current != "\0" && current != " ")
-    {
-        return current;
-    }
+    if (current != '$' && current != ' ') return current;
 
-    return "No winner yet";
+    return '$';
 }
 
 // Output the game board to the console
 // Warning: this is ugly
 void display_game_board()
 {
-    printf("   1 | 2 | 3\r\n");
-    printf("-+---+---+---\r\n");
-    printf("A| ");
-    printf(get_board_value('A', 1));
-    printf(" | ");
-    printf(get_board_value('A', 2));
-    printf(" | ");
-    printf(get_board_value('A', 3));
-    printf("\r\n");
-    printf("-+---+---+---\r\n");
-    printf("B| ");
-    printf(get_board_value('B', 1));
-    printf(" | ");
-    printf(get_board_value('B', 2));
-    printf(" | ");
-    printf(get_board_value('B', 3));
-    printf("\r\n");
-    printf("-+---+---+---\r\n");
-    printf("C| ");
-    printf(get_board_value('C', 1));
-    printf(" | ");
-    printf(get_board_value('C', 2));
-    printf(" | ");
-    printf(get_board_value('C', 3));
-    printf("\r\n");
+    put_string("   1 | 2 | 3\r\n");
+    put_string("-+---+---+---\r\n");
+    put_string("A| ");
+    put_char(get_board_value('A', 1));
+    put_string(" | ");
+    put_char(get_board_value('A', 2));
+    put_string(" | ");
+    put_char(get_board_value('A', 3));
+    put_string("\r\n");
+    put_string("-+---+---+---\r\n");
+    put_string("B| ");
+    put_char(get_board_value('B', 1));
+    put_string(" | ");
+    put_char(get_board_value('B', 2));
+    put_string(" | ");
+    put_char(get_board_value('B', 3));
+    put_string("\r\n");
+    put_string("-+---+---+---\r\n");
+    put_string("C| ");
+    put_char(get_board_value('C', 1));
+    put_string(" | ");
+    put_char(get_board_value('C', 2));
+    put_string(" | ");
+    put_char(get_board_value('C', 3));
+    put_string("\r\n\r\n");
 }
 
-int main()
+char play_game(char first_player)
 {
-    display_game_board();
+    // Initialize the buffer
+    const int buffer_size = 50;
+    char buffer [buffer_size];
 
-    printf("\r\n");
-    printf("Recording player X move in space A1\r\n\r\n");
+    char active_player = first_player;
 
-    record_player_move('A', 1, "X");
-
-    display_game_board();
-
-    printf("\r\n");
-    printf("Recording player X move in space B2\r\n\r\n");
-
-    record_player_move('B', 2, "X");
-
-    display_game_board();
-
-    printf("\r\n");
-    printf("Recording player X move in space C3\r\n\r\n");
-
-    record_player_move('C', 3, "X");
+    // Initialize/reset game board
+    for (int x = 0; x < 3; x++)
+    {
+        for (int y = 0; y < 3; y++)
+        {
+            board[x][y] = ' ';
+        }
+    }
 
     display_game_board();
 
-    printf("\r\n");
-    printf(get_winner());
-    printf(" is the winner!\r\n");
+    // Keep playing until a result
+    while (1)
+    {
+        // Ask user for input and get what they enter
+        put_string("Player ");
+        put_char(active_player);
+        put_string(" enter your move: ");
+        size_t chars_got = get_string(buffer, buffer_size);
+        put_string("\r\n");
 
-    return 0;
+        // Move is invalid if it's not 2 characters
+        if (chars_got != 2)
+        {
+            put_string("Invalid move!\r\n");
+            continue;
+        }
+
+        // Validate/record move
+        if (!record_player_move(buffer[0], buffer[1], active_player))
+        {
+            put_string("Invalid move!\r\n");
+            continue;
+        }
+
+        display_game_board();
+
+        // Check for a winner ($ means no winner)
+        char winner = get_winner();
+
+        // End game if a player has won
+        // Switch active player if no winner
+        if (winner != '$')
+        {
+            put_string("Player ");
+            put_char(winner);
+            put_string(" is the winner!\r\n");
+            return winner;
+        }
+        active_player = active_player == 'X' ? 'O' : 'X';
+    }
+
+    // TODO: check if game ends in a tie
+    // TODO: LED lights
 }

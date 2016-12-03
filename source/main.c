@@ -1,59 +1,61 @@
-#include "gpio.h"
-#include "system_timer.h"
 #include "uart.h"
-
-void blink_once()
-{
-    // Turn on GPIO 24
-    gpio[GPSET0] |= 1 << 24;
-
-    timer_delay_ms(500);
-
-    // Turn off GPIO 24
-    gpio[GPCLR0] |= 1 << 24;
-
-    timer_delay_ms(500);
-}
-
-void blink_code(uint32_t err)
-{
-    for(int i = 0; i < err; ++i)
-    {
-        blink_once();
-    }
-
-    // Only delay 4 seconds, since we delay for 1 additional
-    // second in blink_once().
-    timer_delay_ms(4500);
-}
-
-/*
- * Outputs the game board which looks like this:
- *    1 | 2 | 3
- * -+---+---+---
- * A| X | O | X
- * -+---+---+---
- * B| O | X | O
- * -+---+---+---
- * C| X | O | X
- */
-void display_game_board()
-{
-    put_string("   1 | 2 | 3\r\n");
-    put_string("-+---+---+---\r\n");
-    put_string("A| X | O | X\r\n");
-    put_string("-+---+---+---\r\n");
-    put_string("B| O | X | O\r\n");
-    put_string("-+---+---+---\r\n");
-    put_string("C| X | O | X\r\n");
-}
+#include "tic_tac_toe.h"
 
 int main()
 {
     // Initialize uart
     init_uart();
 
-    display_game_board();
+    // Initialize the buffer
+    const int buffer_size = 50;
+    char buffer [buffer_size];
+
+    put_string("Welcome to Tic-Tac-Toe!\r\n");
+    put_string("Enter a grid space (A1, A2, A3, B1, B2, B3, C1, C2, C3) to play\r\n\r\n");
+
+    char first_move = 'X';
+    bool wants_to_play = true;
+
+    int x_wins = 0;
+    int o_wins = 0;
+    int ties = 0;
+
+    while (wants_to_play)
+    {
+        char winner = play_game(first_move);
+
+        // Game stats
+        if (winner == 'X')
+        {
+            x_wins++;
+        } else if (winner == 'O')
+        {
+            o_wins++;
+        } else
+        {
+            ties++;
+        }
+        put_string("X wins: ");
+        put_char(x_wins | 0x30);
+        put_string("\r\nO wins: ");
+        put_char(o_wins | 0x30);
+        put_string("\r\nTies: ");
+        put_char(ties | 0x30);
+        put_string("\r\n\r\n");
+
+        // Change who goes first in the next game
+        first_move = first_move == 'X' ? 'O' : 'X';
+
+        // Prompt users for another game
+        put_string("Do you want to play another game? [YN]: ");
+        size_t chars_got = get_string(buffer, buffer_size);
+        put_string("\r\n\r\n");
+        if (chars_got < 1 || (buffer[0] != 'Y' && buffer[0] != 'y'))
+        {
+            wants_to_play = false;
+            put_string("Thanks for playing!");
+        }
+    }
     
     return 0;
 }
