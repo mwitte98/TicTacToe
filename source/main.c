@@ -1,8 +1,13 @@
+#include "gpio.h"
 #include "uart.h"
 #include "tic_tac_toe.h"
 
 int main()
 {
+    // Init GPIO select for external LED
+    gpio[GPFSEL1] = 0x40000;
+    gpio[GPFSEL2] = 0x1000;
+
     // Initialize uart
     init_uart();
 

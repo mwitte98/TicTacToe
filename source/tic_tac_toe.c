@@ -1,5 +1,7 @@
 #include "tic_tac_toe.h"
 #include "uart.h"
+#include "system_timer.h"
+#include "gpio.h"
 
 // Initialize 2D game board with single space strings
 char board[3][3];
@@ -180,6 +182,22 @@ void display_game_board()
     put_string("\r\n\r\n");
 }
 
+void set_lights(char active_player)
+{
+    if (active_player == 'X')
+    {
+        // Turn on GPIO 16 (player X)
+        gpio[GPSET0] |= 1 << 16;
+        // Turn off GPIO 24 (player O)
+        gpio[GPCLR0] |= 1 << 24;
+    } else {
+        // Turn off GPIO 16 (player X)
+        gpio[GPCLR0] |= 1 << 16;
+        // Turn on GPIO 24 (player O)
+        gpio[GPSET0] |= 1 << 24;
+    }
+}
+
 char play_game(char first_player)
 {
     // Initialize the buffer
@@ -187,6 +205,7 @@ char play_game(char first_player)
     char buffer [buffer_size];
 
     char active_player = first_player;
+    set_lights(active_player);
 
     // Initialize/reset game board
     for (int x = 0; x < 3; x++)
@@ -235,14 +254,25 @@ char play_game(char first_player)
             put_string("Player ");
             put_char(winner);
             put_string(" is the winner!\r\n");
+            for (int count = 0; count < 15; count++)
+            {
+                set_lights(active_player);
+                timer_delay_ms(100);
+                gpio[GPCLR0] |= 1 << 16;
+                gpio[GPCLR0] |= 1 << 24;
+                timer_delay_ms(100);
+            }
             return winner;
         } else if (is_game_board_full()) {
             put_string("Game has ended in a tie!\r\n");
+            // Turn off GPIO 16 (player X)
+            gpio[GPCLR0] |= 1 << 16;
+            // Turn off GPIO 24 (player O)
+            gpio[GPCLR0] |= 1 << 24;
             return '$';
         }
 
         active_player = active_player == 'X' ? 'O' : 'X';
+        set_lights(active_player);
     }
-
-    // TODO: LED lights
 }
